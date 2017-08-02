@@ -1,0 +1,5 @@
+openid_connect.client_list:
+  title: 'OpenID Connect clients'
+  description: 'Manage login providers for the OpenID Connect module.'
+  parent: system.admin_structure
+  route_name: openid_connect.client_list

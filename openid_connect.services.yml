@@ -1,0 +1,17 @@
+services:
+  openid_connect.state_token:
+    class: Drupal\openid_connect\StateToken
+    arguments: ["@user.private_tempstore", "@session_manager", "@current_user"]
+  openid_connect.token_store_factory:
+    class: Drupal\openid_connect\TokenStoreFactory
+    arguments: ["@user.private_tempstore", "@session_manager", "@current_user"]
+  openid_connect.claims_manager:
+    class: Drupal\openid_connect\ClaimsManager
+  openid_connect.openid_client_type_manager:
+    class: Drupal\openid_connect\OpenIdClientTypeManager
+    parent: default_plugin_manager
+  access_check.valid_state_token:
+    class: Drupal\openid_connect\Access\ValidStateTokenAccessCheck
+    arguments: ['@openid_connect.state_token']
+    tags:
+      - { name: access_check, applies_to: '_access_valid_state_token'}

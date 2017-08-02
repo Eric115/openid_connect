@@ -1,0 +1,5 @@
+openid_connect.client_add:
+  route_name: 'openid_connect.client_add'
+  title: 'Add OpenID client'
+  appears_on:
+    - openid_connect.client_list

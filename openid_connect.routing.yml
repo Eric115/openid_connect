@@ -1,0 +1,71 @@
+openid_connect.client_list:
+  path: '/admin/structure/openid_client'
+  defaults:
+    _entity_list: 'openid_client'
+    _title: 'OpenID Clients'
+  requirements:
+    _permission: 'administer site configuration'
+
+openid_connect.client_add:
+  path: '/admin/structure/openid_client/add'
+  defaults:
+    _entity_form: 'openid_client.add'
+    _title: 'Add a new OpenID client'
+  requirements:
+    _permission: 'administer site configuration'
+
+openid_connect.client_edit:
+  path: '/admin/structure/openid_client/{openid_client}/edit'
+  defaults:
+    _entity_form: 'openid_client.edit'
+    _title: 'Edit OpenID client'
+  requirements:
+    _permission: 'administer site configuration'
+    openid_client: ^[a-zA-Z0-9_]+
+
+openid_connect.provider_response_controller:
+  path: '/openid-connect/{openid_client}'
+  defaults:
+    _controller: '\Drupal\openid_connect\Controller\ProviderResponseController::validateResponse'
+    _title: 'OpenID Connect redirect page'
+  requirements:
+    _access_valid_state_token: 'TRUE'
+    openid_client: ^[a-zA-Z0-9_]+
+
+entity.openid_client.edit_form:
+  path: '/admin/structure/openid_client/{openid_client}/edit'
+  defaults:
+    _entity_form: 'openid_client.edit'
+    _title_callback: 'Edit OpenID client'
+  requirements:
+    _permission: 'administer site configuration'
+    openid_client: ^[a-zA-Z0-9_]+
+
+entity.openid_client.delete_form:
+  path: '/admin/structure/openid_client/{openid_client}/delete'
+  defaults:
+    _entity_form: 'openid_client.delete'
+    _title_callback: 'OpenID client'
+  requirements:
+    _permission: 'administer site configuration'
+    openid_client: ^[a-zA-Z0-9_]+
+
+entity.openid_client.enable:
+  path: '/admin/structure/openid_client/{openid_client}/enable'
+  defaults:
+    _controller: '\Drupal\openid_connect\Entity\Controller\OpenIdClientController::performOperation'
+    op: 'enable'
+  requirements:
+    _permission: 'administer site configuration'
+    _csrf_token: 'TRUE'
+    openid_client: ^[a-zA-Z0-9_]+
+
+entity.openid_client.disable:
+  path: '/admin/structure/openid_client/{openid_client}/disable'
+  defaults:
+    _controller: '\Drupal\openid_connect\Entity\Controller\OpenIdClientController::performOperation'
+    op: 'disable'
+  requirements:
+    _permission: 'administer site configuration'
+    _csrf_token: 'TRUE'
+    openid_client: ^[a-zA-Z0-9_]+

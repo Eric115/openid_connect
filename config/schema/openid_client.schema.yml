@@ -1,0 +1,31 @@
+openid_connect.openid_client.*:
+  type: config_entity
+  label: 'OpenID Client'
+  mapping:
+    id:
+      type: string
+      label: 'Client Identifier'
+    uuid:
+      type: string
+      label: 'UUID'
+    name:
+      type: string
+      label: 'Name'
+    type:
+      type: string
+      label: 'Type'
+    type_settings:
+      type: openid_connect.client_type.[%parent.type]
+
+openid_connect.client_type.generic:
+  type: mapping
+  mapping:
+    authorization_endpoint:
+      type: string
+      label: 'Authorization Endpoint'
+    token_endpoint:
+      type: string
+      label: 'Token Endpoint'
+    userinfo_endpoint:
+      type: string
+      label: 'User Info Endpoint'
