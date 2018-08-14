@@ -10,6 +10,7 @@ use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\openid_connect\ClaimsManagerInterface;
+use Drupal\openid_connect\OpenIdConnectClient;
 use Drupal\openid_connect\StateToken;
 use Drupal\openid_connect\TokenStoreFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -51,9 +52,14 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
   protected $stateToken;
 
   /**
+   * @var \Drupal\openid_connect\OpenIdConnectClient
+   */
+  protected $openIdClient;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ClaimsManagerInterface $claims_manager, HttpClientInterface $http_client, TokenStoreFactory $token_store_factory, StateToken $state_token) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ClaimsManagerInterface $claims_manager, HttpClientInterface $http_client, TokenStoreFactory $token_store_factory, StateToken $state_token, OpenIdConnectClient $openid_client) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->setConfiguration($configuration);
     $this->claimsManager = $claims_manager;
@@ -61,6 +67,7 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
     // Initialize the token store with the plugin id.
     $this->tokenStore = $token_store_factory->createStore($this->getPluginId());
     $this->stateToken = $state_token;
+    $this->openIdClient = $openid_client;
   }
 
   /**
@@ -74,7 +81,8 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
       $container->get('openid_connect.claims_manager'),
       $container->get('http_client'),
       $container->get('openid_connect.token_store_factory'),
-      $container->get('openid_connect.state_token')
+      $container->get('openid_connect.state_token'),
+      $container->get('openid_connect.connect_client')
     );
   }
 
@@ -191,25 +199,12 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
    */
   public function authorize($openid_client_id) {
     $scope = $this->getScope();
+    $this->openIdClient
+      ->setClientId($this->getClientId())
+      ->setClientSecret($this->getClientSecret());
     $redirect_uri = Url::fromRoute('openid_connect.provider_response_controller', ['openid_client' => $openid_client_id], ['absolute' => TRUE])->toString();
 
-    $url_options = [
-      'query' => [
-        'client_id' => $this->getClientId(),
-        'response_type' => 'code',
-        'scope' => $scope,
-        'redirect_uri' => $redirect_uri,
-        'state' => $this->stateToken->createToken(),
-      ],
-    ];
-
-    $auth_url = Url::fromUri($this->getAuthorizationUrl(), $url_options)->toString(TRUE);
-
-    $response = new TrustedRedirectResponse($auth_url->getGeneratedUrl());
-    $response->addCacheableDependency($auth_url);
-    $response->addCacheableDependency($redirect_uri);
-
-    return $response;
+    return $this->openIdClient->requestAuthorization($this->getAuthorizationUrl(), $redirect_uri);
   }
 
   /**
