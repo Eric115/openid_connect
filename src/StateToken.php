@@ -9,9 +9,7 @@ use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class StateToken.
- *
- * @package Drupal\openid_connect
+ * Provides a way to create and access random tokens in a private temp store.
  */
 class StateToken {
 
@@ -70,37 +68,53 @@ class StateToken {
   }
 
   /**
-   * Creates a state token and stores it in the session for later validation.
+   * Creates a random token and stores it in a private temp store.
+   *
+   * @param string $name
+   *   Token name.
    *
    * @return string
-   *   A state token that later can be validated to prevent request forgery.
+   * A secure token that later can be validated to prevent request forgery.
    */
-  public function createToken() {
+  public function createToken(string $name) {
     // Generate a secure state token.
-    $state_token = Crypt::randomBytesBase64();
-    $this->store->set('state_token', $state_token);
-    return $state_token;
+    $token = Crypt::randomBytesBase64();
+    $this->store->set($name, $token);
+    // Make sure the session is saved as we are likely sending a redirect next.
+    $this->sessionManager->save();
+    return $token;
   }
 
   /**
    * Delete the state token stored in the session.
+   *
+   * @param string $name
+   *   Token name.
    */
-  public function destroyToken() {
-    $this->store->delete('state_token');
+  public function destroyToken(string $name) {
+    $this->store->delete($name);
   }
 
   /**
-   * Confirms anti-forgery state token.
+   * Validate a token in the session matches a given value in constant time.
    *
-   * @param string $state_token
-   *   The state token to be checked.
+   * @param string $name
+   *   The name (key) of the token stored in the session (private temp store).
+   * @param string $comparison
+   *   The string to compare it against.
    *
    * @return bool
-   *   True if the passed state token matches the previously created one.
+   *   True if the passed token matches the value in session.
    */
-  public function confirm($state_token) {
-    $session_token = $this->store->get('state_token');
-    return !empty($session_token) && $state_token === $session_token;
+  public function confirm(string $name, string $comparison) {
+    if ($session_value = $this->store->get($name)) {
+      return Crypt::hashEquals($session_value, $comparison);
+    }
+
+    // The hash_equals function returns FALSE immediately
+    // if the strings are different length, so if the value is not set in the
+    // session, there is no need to call hashEquals().
+    return FALSE;
   }
 
 }
