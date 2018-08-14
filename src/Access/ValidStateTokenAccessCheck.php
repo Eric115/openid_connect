@@ -44,9 +44,9 @@ class ValidStateTokenAccessCheck implements AccessInterface, ContainerInjectionI
     // Token from request.
     $token = $request->query->get('state');
 
-    if (!empty($token) && $this->stateToken->confirm($token)) {
+    if (!empty($token) && $this->stateToken->confirm('state', $token)) {
       // Delete the token so it can't be used again.
-      $this->stateToken->destroyToken();
+      $this->stateToken->destroyToken('state');
       return AccessResult::allowed()->setCacheMaxAge(0);
     }
 

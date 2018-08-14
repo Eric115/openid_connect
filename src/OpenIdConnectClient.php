@@ -137,17 +137,15 @@ class OpenIdConnectClient {
    *   Redirect response.
    */
   public function requestAuthorization(string $auth_url, string $redirect_uri, array $custom_auth_params = []) {
-    $state_token = $this->stateToken->createToken();
-    // Need to move nonce to a PrivateTempStore.
-    $nonce = Crypt::randomBytesBase64();
-    $this->sessionManager->set('nonce', $nonce);
+    $state = $this->stateToken->createToken('state');
+    $nonce = $this->stateToken->createToken('nonce');
 
     $auth_parameters['query'] = $this->customAuthParams + [
       'response_type' => 'code',
       'redirect_uri' => $this->redirectUri,
       'client_id' => $this->clientId,
       'nonce' => $nonce,
-      'state' => $state_token,
+      'state' => $state,
       'scope' => 'openid',
     ];
 
