@@ -69,6 +69,11 @@ class OpenIdConnectClient {
   protected $stateToken;
 
   /**
+   * @var array
+   */
+  protected $customTokenParams;
+
+  /**
    * Creates an instance of OpenIdConnectClient.
    *
    * @param \GuzzleHttp\ClientInterface $http_client
@@ -87,6 +92,11 @@ class OpenIdConnectClient {
 
   public function setCustomAuthParameters(array $values) {
     $this->customAuthParams = $values;
+    return $this;
+  }
+
+  public function setCustomTokenParams(array $values) {
+    $this->customTokenParams = $values;
     return $this;
   }
 
@@ -156,6 +166,23 @@ class OpenIdConnectClient {
       ->addCacheableDependency($redirect_uri);
 
     return $response;
+  }
+
+  /**
+   * Request ID, Access and Refresh tokens.
+   *
+   * @param string $code
+   *   Authentication code which can be swapped for an access token
+   * @param string $token_endpoint
+   */
+  public function requestTokens(string $code, string $token_endpoint) {
+    $token_params['form_params'] = $this->customTokenParams + [
+      'grant_type' => 'authorization_code',
+      'code' => $code,
+      'redirect_uri' => $this->redirectUri,
+      'client_id' => $this->clientId,
+      'client_secret' => $this->clientSecret,
+    ];
   }
 
 }
