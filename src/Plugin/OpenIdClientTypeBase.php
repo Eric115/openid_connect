@@ -213,37 +213,15 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
   public function getTokens($openid_client_id, $auth_code) {
     $redirect_uri = Url::fromRoute('openid_connect.provider_response_controller', ['openid_client' => $openid_client_id], ['absolute' => TRUE])->toString();
 
-    $request_options = [
-      'form_params' => [
-        'code' => $auth_code,
-        'client_id' => $this->getClientId(),
-        'client_secret' => $this->getClientSecret(),
-        'redirect_uri' => $redirect_uri,
-        'grant_type' => 'authorization_code',
-      ],
-    ];
-
-    try {
-      /** @var \GuzzleHttp\Psr7\Response $response */
-      $response = $this->httpClient->post($this->getTokenUrl(), $request_options);
-      $response_data = json_decode((string) $response->getBody(), TRUE);
-
-      return [
-        'access_token' => $response_data['access_token'],
-        'refresh_token' => $response_data['refresh_token'],
-        'id_token' => $response_data['id_token'],
-      ];
-    }
-    catch (\Exception $e) {
-      return FALSE;
-    }
+    // TODO: Refactor to try/catch with logging.
+    return $this->openIdClient->requestTokens($auth_code, $this->getTokenUrl());
   }
 
   /**
    * {@inheritdoc}
    */
   public function getUserInfo() {
-    if ($access_token = $this->tokenStore->get('access_token')) {
+    if ($access_token = $this->tokenStore->get('access')) {
       $request_options = [
         'headers' => [
           'Authorization' => 'Bearer ' . $access_token,

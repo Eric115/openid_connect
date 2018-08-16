@@ -4,7 +4,6 @@ namespace Drupal\openid_connect;
 
 use Drupal\Component\Utility\Crypt;
 use Drupal\Core\Routing\TrustedRedirectResponse;
-use Drupal\Core\Session\SessionManagerInterface;
 use Drupal\Core\Url;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
@@ -43,13 +42,6 @@ class OpenIdConnectClient {
   protected $httpClient;
 
   /**
-   * Instance of session manager.
-   *
-   * @var \Drupal\Core\Session\SessionManagerInterface
-   */
-  protected $sessionManager;
-
-  /**
    * Custom authentication parameters.
    *
    * @var array
@@ -69,6 +61,11 @@ class OpenIdConnectClient {
   protected $stateToken;
 
   /**
+   * @var array
+   */
+  protected $customTokenParams;
+
+  /**
    * Creates an instance of OpenIdConnectClient.
    *
    * @param \GuzzleHttp\ClientInterface $http_client
@@ -80,16 +77,43 @@ class OpenIdConnectClient {
     $this->stateToken = $state_token;
   }
 
-  public function setCustomAuthParameter(string $name, string $value) {
-    $this->customAuthParams[$name] = $value;
-    return $this;
-  }
-
+  /**
+   * Set or edit parameters to be sent with authentication request.
+   *
+   * @param array $values
+   *   An array of url-safe values, keyed by variable name.
+   *
+   * @return $this
+   *   Instance of self.
+   */
   public function setCustomAuthParameters(array $values) {
     $this->customAuthParams = $values;
     return $this;
   }
 
+  /**
+   * Set or edit parameters to be posted when requesting tokens.
+   *
+   * @param array $values
+   *   An array of values, keyed by variable name.
+   *
+   * @return $this
+   *   Instance of self.
+   */
+  public function setCustomTokenParams(array $values) {
+    $this->customTokenParams = $values;
+    return $this;
+  }
+
+  /**
+   * Set the redirect URI which is sent to login provider during authentication.
+   *
+   * @param string $uri
+   *   URI to redirect to after user has logged in and granted access.
+   *
+   * @return $this
+   *   Instance of self.
+   */
   public function setRedirectUri(string $uri) {
     $this->redirectUri = $uri;
     return $this;
@@ -156,6 +180,35 @@ class OpenIdConnectClient {
       ->addCacheableDependency($redirect_uri);
 
     return $response;
+  }
+
+  /**
+   * Request ID, Access and Refresh tokens.
+   *
+   * @param string $code
+   *   Authentication code which can be swapped for an access token
+   * @param string $token_endpoint
+   *
+   * @return array
+   *   An array of tokens: access, refresh and id.
+   */
+  public function requestTokens(string $code, string $token_endpoint) {
+    $token_params['form_params'] = $this->customTokenParams + [
+      'grant_type' => 'authorization_code',
+      'code' => $code,
+      'redirect_uri' => $this->redirectUri,
+      'client_id' => $this->clientId,
+      'client_secret' => $this->clientSecret,
+    ];
+
+    $response = $this->httpClient->request('post', $token_endpoint, $token_params);
+    $response_data = json_decode((string) $response->getBody(), TRUE);
+
+    return [
+      'access' => $response_data['access_token'],
+      'refresh' => $response_data['refresh_token'],
+      'id' => $response_data['id_token'],
+    ];
   }
 
 }

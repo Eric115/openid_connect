@@ -109,13 +109,10 @@ class ProviderResponseController extends ControllerBase {
    */
   public function authenticate(OpenIdClient $openid_client, Request $request) {
     // Get the authentication code which can be swapped for an access token.
-    if ($code = $request->query->get('code')) {
-      $tokens = $openid_client->getTokens($code);
-
-      if (!empty($tokens)) {
+    if ($code = $request->query->get('code', FALSE)) {
+      if ($tokens = $openid_client->getTokens($code)) {
         // Create a new token store with the client ID as the collection ID.
         $store = $this->tokenStoreFactory->createStore($openid_client->getClientType()->getPluginId());
-
         foreach ($tokens as $key => $token) {
           $store->set($key, $token);
         }
@@ -124,10 +121,11 @@ class ProviderResponseController extends ControllerBase {
       // @TODO: Change this to use Events.
       $user_info = $openid_client->getUserInfo();
       $this->moduleHandler()->invokeAll('openid_user_authenticated', [$user_info]);
-
       return TRUE;
+
     }
 
+    // TODO: Add logging.
     drupal_set_message('Unable to complete login.');
     return FALSE;
   }
