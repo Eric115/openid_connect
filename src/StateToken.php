@@ -86,7 +86,7 @@ class StateToken {
   }
 
   /**
-   * Delete the state token stored in the session.
+   * Delete a token from the session.
    *
    * @param string $name
    *   Token name.
@@ -98,23 +98,30 @@ class StateToken {
   /**
    * Validate a token in the session matches a given value in constant time.
    *
+   * Deletes the token from the session after comparing.
+   *
    * @param string $name
    *   The name (key) of the token stored in the session (private temp store).
    * @param string $comparison
    *   The string to compare it against.
    *
    * @return bool
-   *   True if the passed token matches the value in session.
+   *   TRUE if the passed token matches the value in session.
    */
   public function confirm(string $name, string $comparison) {
+    $result = FALSE;
+
     if ($session_value = $this->store->get($name)) {
-      return Crypt::hashEquals($session_value, $comparison);
+      $result = Crypt::hashEquals($session_value, $comparison);
     }
+
+    // Tokens should only ever be used once, so destroy after comparison.
+    $this->store->delete($name);
 
     // The hash_equals function returns FALSE immediately
     // if the strings are different length, so if the value is not set in the
     // session, there is no need to call hashEquals().
-    return FALSE;
+    return $result;
   }
 
 }
