@@ -74,7 +74,7 @@ class StateToken {
    *   Token name.
    *
    * @return string
-   * A secure token that later can be validated to prevent request forgery.
+   *   A secure token that later can be validated to prevent request forgery.
    */
   public function createToken(string $name) {
     // Generate a secure state token.

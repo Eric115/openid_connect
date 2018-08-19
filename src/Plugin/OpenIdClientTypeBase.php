@@ -6,7 +6,6 @@ use Drupal\Component\Plugin\PluginBase;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\openid_connect\ClaimsManagerInterface;
@@ -52,6 +51,8 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
   protected $stateToken;
 
   /**
+   * Instance of OpenIdConnectClient.
+   *
    * @var \Drupal\openid_connect\OpenIdConnectClient
    */
   protected $openIdClient;

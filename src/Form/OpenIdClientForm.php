@@ -6,11 +6,39 @@ use Drupal\Core\Form\SubformState;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\openid_connect\OpenIdClientTypeManager;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Entity form for OpenIdClient.
  */
 class OpenIdClientForm extends EntityForm {
+
+  /**
+   * Instance of OpenIdClientTypeManager class.
+   *
+   * @var \Drupal\openid_connect\OpenIdClientTypeManager
+   */
+  protected $clientTypeManager;
+
+  /**
+   * Instantiates the OpenIdClientForm.
+   *
+   * @param \Drupal\openid_connect\OpenIdClientTypeManager $client_type_manager
+   *   Instance of the client type manager.
+   */
+  public function __construct(OpenIdClientTypeManager $client_type_manager) {
+    $this->clientTypeManager = $client_type_manager;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('openid_connect.openid_client_type_manager')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -45,13 +73,10 @@ class OpenIdClientForm extends EntityForm {
       ],
     ];
 
-    /** @var \Drupal\openid_connect\OpenIdClientTypeManager $manager */
-    $manager = \Drupal::service('openid_connect.openid_client_type_manager');
-
     if ($client->isNew()) {
       $client_types = array_map(function ($plugin_definition) {
         return $plugin_definition['label'];
-      }, $manager->getDefinitions());
+      }, $this->clientTypeManager->getDefinitions());
       $form['type'] = [
         '#type' => 'select',
         '#title' => $this->t('Provider Type'),

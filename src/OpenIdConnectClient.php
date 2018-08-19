@@ -2,10 +2,8 @@
 
 namespace Drupal\openid_connect;
 
-use Drupal\Component\Utility\Crypt;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\Url;
-use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 
 /**
@@ -186,7 +184,7 @@ class OpenIdConnectClient {
    * Request ID, Access and Refresh tokens.
    *
    * @param string $code
-   *   Authentication code which can be swapped for an access token
+   *   Authentication code which can be swapped for an access token.
    * @param string $token_endpoint
    *
    * @return array
