@@ -57,17 +57,15 @@ class LoginForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $clients = $this->entityStorage->getEnabledClients();
 
-    if (!empty($clients)) {
-      /** @var \Drupal\openid_connect\Entity\OpenIdClient $client */
-      foreach ($clients as $id => $client) {
-        $form['openid_connect_client_' . $id . '_login'] = [
-          '#type' => 'submit',
-          '#value' => t('Log in with @client_title', [
-            '@client_title' => $client->label(),
-          ]),
-          '#name' => $id,
-        ];
-      }
+    /** @var \Drupal\openid_connect\Entity\OpenIdClient $client */
+    foreach ($clients as $id => $client) {
+      $form['openid_connect_client_' . $id . '_login'] = [
+        '#type' => 'submit',
+        '#value' => t('Log in with @client_title', [
+          '@client_title' => $client->label(),
+        ]),
+        '#name' => $id,
+      ];
     }
 
     return $form;

@@ -175,7 +175,7 @@ class OpenIdConnectClient {
       'scope' => 'openid',
     ];
 
-    $auth_url = Url::fromUri($auth_url, $auth_parameters)->toString(TRUE);
+    $auth_url = Url::fromUri($auth_url, $auth_parameters)->toString(TRUE)->getGeneratedUrl();
 
     $response = new TrustedRedirectResponse($auth_url);
     $response->addCacheableDependency($auth_url)
