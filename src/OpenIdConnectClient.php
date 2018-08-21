@@ -47,6 +47,13 @@ class OpenIdConnectClient {
   protected $customAuthParams = [];
 
   /**
+   * Custom token parameters.
+   *
+   * @var array
+   */
+  protected $customTokenParams = [];
+
+  /**
    * Return redirect uri after user login.
    *
    * @var string
@@ -54,14 +61,11 @@ class OpenIdConnectClient {
   protected $redirectUri;
 
   /**
+   * Instance of state token.
+   *
    * @var \Drupal\openid_connect\StateToken
    */
   protected $stateToken;
-
-  /**
-   * @var array
-   */
-  protected $customTokenParams;
 
   /**
    * Creates an instance of OpenIdConnectClient.
@@ -186,6 +190,7 @@ class OpenIdConnectClient {
    * @param string $code
    *   Authentication code which can be swapped for an access token.
    * @param string $token_endpoint
+   *   Endpoint to use when requesting tokens.
    *
    * @return array
    *   An array of tokens: access, refresh and id.

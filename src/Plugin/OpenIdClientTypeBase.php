@@ -139,7 +139,6 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
       '#maxlength' => 255,
       '#default_value' => $this->configuration['client_id'],
       '#description' => $this->t('Client ID for the remote endpoint.'),
-      '#required' => TRUE,
     ];
     $form['client_secret'] = [
       '#type' => 'textfield',
@@ -147,7 +146,6 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
       '#maxlength' => 255,
       '#default_value' => $this->configuration['client_secret'],
       '#description' => $this->t('Client Secret for the remote endpoint.'),
-      '#required' => TRUE,
     ];
 
     $defined_claims = $this->claimsManager->getClaims();

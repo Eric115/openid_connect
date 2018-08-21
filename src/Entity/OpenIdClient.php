@@ -83,7 +83,11 @@ class OpenIdClient extends ConfigEntityBase implements OpenIdClientInterface {
    *   The plugin collection.
    */
   protected function getTypePluginCollection() {
-    return new DefaultSingleLazyPluginCollection(\Drupal::service('openid_connect.openid_client_type_manager'), $this->type, $this->type_settings);
+    if ($this->type) {
+      return new DefaultSingleLazyPluginCollection(\Drupal::service('openid_connect.openid_client_type_manager'), $this->type, $this->type_settings);
+    }
+
+    return NULL;
   }
 
   /**

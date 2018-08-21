@@ -45,8 +45,6 @@ class OpenIdClientForm extends EntityForm {
    */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
-
-    /** @var \Drupal\openid_connect\Entity\OpenIdClient $client */
     $client = $this->entity;
 
     if ($this->operation === 'edit') {
@@ -69,7 +67,7 @@ class OpenIdClientForm extends EntityForm {
       '#disabled' => !$client->isNew(),
       '#machine_name' => [
         'source' => ['name'],
-        'exists' => 'openid_connect_client_load',
+    // 'exists' => 'openid_connect_client_load',.
       ],
     ];
 
@@ -87,7 +85,6 @@ class OpenIdClientForm extends EntityForm {
     else {
       /** @var \Drupal\openid_connect\Plugin\OpenIdClientTypeInterface $client_type */
       $client_type = $client->getClientType();
-
       $form['type_settings'] = [
         '#tree' => TRUE,
       ];
