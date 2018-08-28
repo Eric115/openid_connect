@@ -6,12 +6,15 @@ use Drupal\Component\Plugin\PluginBase;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\openid_connect\ClaimsManagerInterface;
+use Drupal\openid_connect\Oauth2ClientFactoryInterface;
 use Drupal\openid_connect\OpenIdConnectClient;
 use Drupal\openid_connect\StateToken;
 use Drupal\openid_connect\TokenStoreFactory;
+use League\OAuth2\Client\Provider\GenericProvider;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use GuzzleHttp\ClientInterface as HttpClientInterface;
 
@@ -58,17 +61,34 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
   protected $openIdClient;
 
   /**
+   * Instance of GenericProvider.
+   *
+   * @var \League\OAuth2\Client\Provider\GenericProvider
+   */
+  protected $oauth2Client;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ClaimsManagerInterface $claims_manager, HttpClientInterface $http_client, TokenStoreFactory $token_store_factory, StateToken $state_token, OpenIdConnectClient $openid_client) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ClaimsManagerInterface $claims_manager, HttpClientInterface $http_client, TokenStoreFactory $token_store_factory, StateToken $state_token, Oauth2ClientFactoryInterface $oauth2_client_factory) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->setConfiguration($configuration);
     $this->claimsManager = $claims_manager;
     $this->httpClient = $http_client;
-    // Initialize the token store with the plugin id.
     $this->tokenStore = $token_store_factory->createStore($this->getPluginId());
     $this->stateToken = $state_token;
-    $this->openIdClient = $openid_client;
+
+    // Don't create client if this is a new plugin.
+    if (!empty($configuration) && $this->configuration['client_id']) {
+      $this->oauth2Client = $oauth2_client_factory->createClient([
+        'clientId' => $this->configuration['client_id'],
+        'clientSecret' => $this->configuration['client_secret'],
+        'redirectUri' => static::getRedirectUri($plugin_id),
+        'urlAuthorize' => $this->getAuthorizationUrl(),
+        'urlAccessToken' => $this->getTokenUrl(),
+        'urlResourceOwnerDetails' => $this->getResourceOwnerUrl(),
+      ]);
+    }
   }
 
   /**
@@ -83,8 +103,19 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
       $container->get('http_client'),
       $container->get('openid_connect.token_store_factory'),
       $container->get('openid_connect.state_token'),
+      $container->get('openid_connect.oauth2_client_factory'),
       $container->get('openid_connect.connect_client')
     );
+  }
+
+  /**
+   * Get the redirect URI.
+   *
+   * @param string $openid_client
+   *   Redirect uri for this client.
+   */
+  public static function getRedirectUri(string $openid_client) {
+    $redirect_uri = $redirect_uri = Url::fromRoute('openid_connect.provider_response_controller', ['openid_client' => $openid_client], ['absolute' => TRUE])->toString();
   }
 
   /**
@@ -139,6 +170,7 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
       '#maxlength' => 255,
       '#default_value' => $this->configuration['client_id'],
       '#description' => $this->t('Client ID for the remote endpoint.'),
+      '#required' => TRUE,
     ];
     $form['client_secret'] = [
       '#type' => 'textfield',
@@ -146,6 +178,7 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
       '#maxlength' => 255,
       '#default_value' => $this->configuration['client_secret'],
       '#description' => $this->t('Client Secret for the remote endpoint.'),
+      '#required' => TRUE,
     ];
 
     $defined_claims = $this->claimsManager->getClaims();
@@ -189,31 +222,36 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
   public function getScope() {
     $claims = $this->configuration['claims'];
     $claims = is_array($claims) ? $claims : [];
-
     return $this->claimsManager->getScopes($claims);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function authorize($openid_client_id) {
-    $scope = $this->getScope();
-    $this->openIdClient
-      ->setClientId($this->getClientId())
-      ->setClientSecret($this->getClientSecret());
-    $redirect_uri = Url::fromRoute('openid_connect.provider_response_controller', ['openid_client' => $openid_client_id], ['absolute' => TRUE])->toString();
+  public function authorize() {
+    // Inject our own state token using Drupal's Crypt class.
+    $state = $this->stateToken->createToken('state');
+    $auth_url = $this->oauth2Client->getAuthorizationUrl([
+      'state' => $state,
+      'scope' => $this->getScope(),
+    ]);
 
-    return $this->openIdClient->requestAuthorization($this->getAuthorizationUrl(), $redirect_uri);
+    // Send user to provider's sign-in page.
+    $response = new TrustedRedirectResponse($this->oauth2Client->getAuthorizationUrl());
+    $response->setMaxAge(0);
+    return $response;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getTokens($openid_client_id, $auth_code) {
-    $redirect_uri = Url::fromRoute('openid_connect.provider_response_controller', ['openid_client' => $openid_client_id], ['absolute' => TRUE])->toString();
+  public function getTokens(string $code) {
+    $access_token = $this->oauth2Client->getAccessToken('authorization_code', [
+      'code' => $code,
+    ]);
 
-    // TODO: Refactor to try/catch with logging.
-    return $this->openIdClient->requestTokens($auth_code, $this->getTokenUrl());
+    $this->tokenStore->set('access', $access_token->getToken());
+    $this->tokenStore->set('refresh', $access_token->getRefreshToken());
   }
 
   /**
@@ -240,6 +278,16 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
     }
 
     return FALSE;
+  }
+
+  /**
+   * Get the resource owner details endpoint.
+   *
+   * @return string
+   *   URL.
+   */
+  public function getResourceOwnerUrl() {
+    return '';
   }
 
   /**

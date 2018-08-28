@@ -110,17 +110,7 @@ class ProviderResponseController extends ControllerBase {
   public function authenticate(OpenIdClient $openid_client, Request $request) {
     // Get the authentication code which can be swapped for an access token.
     $code = $request->query->get('code', FALSE);
-    if ($tokens = $openid_client->getTokens($code)) {
-      // Create a new token store with the client ID as the collection ID.
-      $store = $this->tokenStoreFactory->createStore($openid_client->getClientType()->getPluginId());
-      foreach ($tokens as $key => $token) {
-        $store->set($key, $token);
-      }
-    }
-    else {
-      drupal_set_message('Unable to fetch tokens from login provider.', 'error');
-      return FALSE;
-    }
+    $openid_client->getTokens($code);
 
     // @TODO: Change this to use Events.
     $user_info = $openid_client->getUserInfo();

@@ -32,6 +32,11 @@ interface OpenIdClientTypeInterface extends PluginInspectionInterface, PluginFor
   public function getTokenUrl();
 
   /**
+   * @return string
+   */
+  public function getResourceOwnerUrl();
+
+  /**
    * Returns the OpenID userinfo endpoint URL.
    *
    * @see http://openid.net/specs/openid-connect-core-1_0.html#UserInfo
@@ -68,32 +73,27 @@ interface OpenIdClientTypeInterface extends PluginInspectionInterface, PluginFor
   public function getScope();
 
   /**
+   * Get the access, refresh and ID tokens.
+   *
+   * @param string $code
+   *   The authentication code passed back from the remote provider.
+   *
+   * @return array|bool
+   *   An array of tokens or FALSE on failure.
+   */
+  public function getTokens(string $code);
+
+  /**
    * Redirects the user to the authorization endpoint.
    *
    * The authorization endpoint authenticates the user and returns them
    * to the redirect_uri specified previously with an authorization code
    * that can be exchanged for an access token.
    *
-   * @param string $id
-   *   The id of the openIdClient entity.
-   *
    * @return \Drupal\Core\Routing\TrustedRedirectResponse
    *   A response object.
    */
-  public function authorize($id);
-
-  /**
-   * Get the access, refresh and ID tokens.
-   *
-   * @param string $id
-   *   The id of the openIdClient entity.
-   * @param string $auth_code
-   *   The authentication code passed back from the remote provider.
-   *
-   * @return array|bool
-   *   An array of tokens or FALSE on failure.
-   */
-  public function getTokens($id, $auth_code);
+  public function authorize();
 
   /**
    * Request and normalize user info from remote provider.

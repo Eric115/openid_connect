@@ -73,6 +73,7 @@ class OpenIdConnectClient {
    * @param \GuzzleHttp\ClientInterface $http_client
    *   Http client, or NULl for default Guzzle client.
    * @param \Drupal\openid_connect\StateToken $state_token
+   *   Instance of state token.
    */
   public function __construct(ClientInterface $http_client, StateToken $state_token) {
     $this->httpClient = $http_client;

@@ -40,7 +40,7 @@ use Drupal\openid_connect\OpenIdClientInterface;
 class OpenIdClient extends ConfigEntityBase implements OpenIdClientInterface {
 
   /**
-   * The ID of the client.
+   * The client plugin ID.
    *
    * @var string
    */
@@ -94,7 +94,7 @@ class OpenIdClient extends ConfigEntityBase implements OpenIdClientInterface {
    * Get the client type.
    *
    * @return \Drupal\openid_connect\Plugin\OpenIdClientTypeInterface
-   *   Client type instance.
+   *   Instance of client for give type.
    */
   public function getClientType() {
     $collection = $this->getTypePluginCollection();
