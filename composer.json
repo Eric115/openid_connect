@@ -10,5 +10,7 @@
     "issues": "https://www.drupal.org/project/issues/openid_connect",
     "source": "http://cgit.drupalcode.org/openid_connect"
   },
-  "require": { }
+  "require": {
+    "league/oauth2-client": "~2.3"
+  }
 }
