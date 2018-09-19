@@ -62,8 +62,6 @@ class ProviderResponseController extends ControllerBase {
   public function validateResponse(OpenIdClient $openid_client, Request $request) {
     $query = $request->query;
     $error = $query->get('error');
-    $success_url = $openid_client->getSuccessRedirectUrl();
-    $failure_url = $openid_client->getFailRedirectUrl();
 
     // If the client is invalid or there is no auth code in the response
     // it's as if this page wasn't visited in the login workflow.
@@ -90,10 +88,10 @@ class ProviderResponseController extends ControllerBase {
         drupal_set_message($this->t('Could not authenticate with @provider.', $openid_client->label()), 'error');
       }
 
-      return new RedirectResponse($failure_url);
+      return new RedirectResponse($openid_client->getFailRedirectUrl());
     }
 
-    return new RedirectResponse($success_url);
+    return new RedirectResponse($openid_client->getSuccessRedirectUrl());
   }
 
   /**

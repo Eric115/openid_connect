@@ -107,13 +107,16 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
   }
 
   /**
-   * Get the redirect URI.
+   * Returns the redirect URI.
    *
    * @param string $openid_client
    *   Redirect uri for this client.
+   *
+   * @return string
+   *   Redirect uri string.
    */
   public static function getRedirectUri(string $openid_client) {
-    $redirect_uri = $redirect_uri = Url::fromRoute('openid_connect.provider_response_controller', ['openid_client' => $openid_client], ['absolute' => TRUE])->toString();
+    return $redirect_uri = Url::fromRoute('openid_connect.provider_response_controller', ['openid_client' => $openid_client], ['absolute' => TRUE])->toString();
   }
 
   /**
@@ -233,7 +236,7 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
     ]);
 
     // Send user to provider's sign-in page.
-    $response = new TrustedRedirectResponse($this->oauth2Client->getAuthorizationUrl());
+    $response = new TrustedRedirectResponse($auth_url);
     $response->setMaxAge(0);
     return $response;
   }

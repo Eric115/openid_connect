@@ -105,14 +105,14 @@ class OpenIdClient extends ConfigEntityBase implements OpenIdClientInterface {
    * {@inheritdoc}
    */
   public function authorize() {
-    return $this->getClientType()->authorize($this->id);
+    return $this->getClientType()->authorize();
   }
 
   /**
    * {@inheritdoc}
    */
   public function getTokens($auth_code) {
-    return $this->getClientType()->getTokens($this->id, $auth_code);
+    return $this->getClientType()->getTokens($auth_code);
   }
 
   /**
