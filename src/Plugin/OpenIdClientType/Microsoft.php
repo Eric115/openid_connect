@@ -34,7 +34,7 @@ class Microsoft extends OpenIdClientTypeBase {
       '#title' => $this->t('Tenant ID'),
       '#maxlength' => 255,
       '#default_value' => $this->configuration['tenant_id'],
-      '#description' => $this->t('Microsoft tenant ID.'),
+      '#description' => $this->t('Microsoft tenant ID. Use "common" to allow all.'),
       '#required' => TRUE,
     ];
 

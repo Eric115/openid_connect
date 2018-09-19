@@ -37,10 +37,13 @@ class OpenIdClientEntityTest extends KernelTestBase {
    */
   public function testClientEntity() {
     $client_entity = OpenIdClient::create([
-      'type' => 'generic',
       'id' => 'fancy',
-      'label' => 'Fancy Open ID server',
+      'name' => 'Fancy Open ID server',
+      'type' => 'generic',
       'type_settings' => [
+        'authorization_endpoint' => 'https://example.com/authorize',
+        'token_endpoint' => 'https://example.com/token',
+        'userinfo_endpoint' => 'https://example.com/userinfo',
         'client_id' => 'abc123',
         'client_secret' => '123abc',
         'claims' => [

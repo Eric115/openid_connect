@@ -20,6 +20,12 @@ openid_connect.openid_client.*:
 openid_connect.client_type.generic:
   type: mapping
   mapping:
+    client_id:
+      type: string
+      label: 'Client ID'
+    client_secret:
+      type: string
+      label: 'Client Secret'
     authorization_endpoint:
       type: string
       label: 'Authorization Endpoint'
@@ -29,3 +35,9 @@ openid_connect.client_type.generic:
     userinfo_endpoint:
       type: string
       label: 'User Info Endpoint'
+    claims:
+      type: sequence
+      label: 'Claims'
+      sequence:
+        type: boolean
+        label: 'Status'
