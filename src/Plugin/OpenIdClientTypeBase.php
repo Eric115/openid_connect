@@ -11,10 +11,8 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\openid_connect\ClaimsManagerInterface;
 use Drupal\openid_connect\Oauth2ClientFactoryInterface;
-use Drupal\openid_connect\OpenIdConnectClient;
 use Drupal\openid_connect\StateToken;
 use Drupal\openid_connect\TokenStoreFactory;
-use League\OAuth2\Client\Provider\GenericProvider;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use GuzzleHttp\ClientInterface as HttpClientInterface;
 
@@ -170,7 +168,6 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
       '#maxlength' => 255,
       '#default_value' => $this->configuration['client_id'],
       '#description' => $this->t('Client ID for the remote endpoint.'),
-      '#required' => TRUE,
     ];
     $form['client_secret'] = [
       '#type' => 'textfield',
@@ -178,7 +175,6 @@ abstract class OpenIdClientTypeBase extends PluginBase implements OpenIdClientTy
       '#maxlength' => 255,
       '#default_value' => $this->configuration['client_secret'],
       '#description' => $this->t('Client Secret for the remote endpoint.'),
-      '#required' => TRUE,
     ];
 
     $defined_claims = $this->claimsManager->getClaims();

@@ -32,7 +32,10 @@ interface OpenIdClientTypeInterface extends PluginInspectionInterface, PluginFor
   public function getTokenUrl();
 
   /**
+   * Returns the resource owner url.
+   *
    * @return string
+   *   Resource owner url.
    */
   public function getResourceOwnerUrl();
 
