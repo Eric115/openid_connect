@@ -32,7 +32,7 @@ class Google extends OpenIdClientTypeBase {
    * {@inheritdoc}
    */
   public function getUserInfoUrl() {
-    return 'https://www.googleapis.com/plus/v1/people/me/openIdConnect';
+    return 'https://www.googleapis.com/oauth2/v3/userinfo';
   }
 
 }
