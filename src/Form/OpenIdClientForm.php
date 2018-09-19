@@ -6,6 +6,7 @@ use Drupal\Core\Form\SubformState;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\openid_connect\Entity\OpenIdClient;
 use Drupal\openid_connect\OpenIdClientTypeManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -67,7 +68,7 @@ class OpenIdClientForm extends EntityForm {
       '#disabled' => !$client->isNew(),
       '#machine_name' => [
         'source' => ['name'],
-    // 'exists' => 'openid_connect_client_load',.
+        'exists' => '\Drupal\openid_connect\Form\OpenIdClientForm::openIdClientExists',
       ],
     ];
 
@@ -96,6 +97,19 @@ class OpenIdClientForm extends EntityForm {
   }
 
   /**
+   * Checks if a client with a given ID already exists.
+   *
+   * @param string $client_id
+   *   Client ID to check.
+   *
+   * @return bool
+   *   TRUE if the client already exists.
+   */
+  public static function openIdClientExists(string $client_id) {
+    return !!OpenIdClient::load($client_id);
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
@@ -113,9 +127,10 @@ class OpenIdClientForm extends EntityForm {
   public function save(array $form, FormStateInterface $form_state) {
     /** @var \Drupal\openid_connect\Entity\OpenIdClient $client */
     $client = $this->entity;
+    $new_client = $client->isNew();
 
     // Only attempt to save these if the entity already has a type selected.
-    if (!$client->isNew()) {
+    if (!$new_client) {
       $client_type = $client->getClientType();
       $subform_state = SubformState::createForSubform($form['type_settings'], $form, $form_state);
       $client_type->submitConfigurationForm($form['type_settings'], $subform_state);
@@ -130,13 +145,19 @@ class OpenIdClientForm extends EntityForm {
 
     $status = $client->save();
 
+    if ($new_client) {
+      $form_state->setRedirect('openid_connect.client_edit', ['openid_client' => $client->id()]);
+    }
+    else {
+      $form_state->setRedirect('openid_connect.client_list');
+    }
+
     $edit_link = $client->link($this->t('Edit'));
     $action = $status == SAVED_UPDATED ? 'updated' : 'added';
 
     // Add a message with the action.
     drupal_set_message($this->t('OpenID client %label has been %action.', ['%label' => $client->label(), '%action' => $action]));
     $this->logger('openid_client')->notice($this->t('OpenID client %label has been %action.', ['%label' => $client->label(), '%action' => $action]), ['link' => $edit_link]);
-    $form_state->setRedirect('openid_connect.client_list');
   }
 
 }
