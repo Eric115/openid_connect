@@ -1,9 +1,6 @@
 services:
   openid_connect.oauth2_client_factory:
     class: Drupal\openid_connect\Oauth2ClientFactory
-  openid_connect.connect_client:
-    class: Drupal\openid_connect\OpenIdConnectClient
-    arguments: ['@http_client', '@openid_connect.state_token']
   openid_connect.state_token:
     class: Drupal\openid_connect\StateToken
     arguments: ['@user.private_tempstore', '@session_manager', '@current_user']
